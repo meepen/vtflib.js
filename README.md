@@ -16,7 +16,7 @@ let image = readdata.getImages().reverse()[0];
 
 // image.toRGBA8888()
 
-readdata.setImage(image.convert(VTFImageFormatType.IMAGE_FORMAT_DXT5));
+readdata.setImage(image.convert("DXT5"));
 
 writeFileSync("./out.vtf", readdata.toBuffer());
 ```

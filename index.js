@@ -1,106 +1,113 @@
 const dxt = require("dxt-js");
 
-exports.VTFResourceTypes = {
+const VTFResourceTypes = exports.VTFResourceTypes = {
 	LOW_RES_IMAGE: 1,
 	IMAGE: 48, 
+};
+
+const VTFResource = exports.VTFResource = class VTFResource {
+	constructor(type, data) {
+		this.Type = type;
+		this.Data = data;
+	}
+
+	toBuffer() {
+		let buf = Buffer.alloc(8);
+		buf.writeUInt32LE(this.Type, 0);
+		buf.writeUInt32LE(this.Offset, 4);
+
+		return buf;
+	}
+};
+
+let VTFImageFormatInfo = exports.RawImageFormats = [];
+
+for (let [index, value] of [
+	[ "RGBA8888",			 32,  4,  8,  8,  8,  8, false,  true ],
+	[ "ABGR8888",			 32,  4,  8,  8,  8,  8, false,  true ],
+	[ "RGB888",				 24,  3,  8,  8,  8,  0, false,  true ],
+	[ "BGR888",				 24,  3,  8,  8,  8,  0, false,  true ],
+	[ "RGB565",				 16,  2,  5,  6,  5,  0, false,  true ],
+	[ "I8",					  8,  1,  0,  0,  0,  0, false,  true ],
+	[ "IA88",				 16,  2,  0,  0,  0,  8, false,  true ],
+	[ "P8",					  8,  1,  0,  0,  0,  0, false, false ],
+	[ "A8",					  8,  1,  0,  0,  0,  8, false,  true ],
+	[ "RGB888 Bluescreen",	 24,  3,  8,  8,  8,  0, false,  true ],
+	[ "BGR888 Bluescreen",	 24,  3,  8,  8,  8,  0, false,  true ],
+	[ "ARGB8888",			 32,  4,  8,  8,  8,  8, false,  true ],
+	[ "BGRA8888",			 32,  4,  8,  8,  8,  8, false,  true ],
+	[ "DXT1",				  4,  0,  5,  6,  5,  0,  true,  true ],
+	[ "DXT3",				  8,  0,  0,  0,  0,  8,  true,  true ],
+	[ "DXT5",				  8,  0,  0,  0,  0,  8,  true,  true ],
+	[ "BGRX8888",			 32,  4,  8,  8,  8,  0, false,  true ],
+	[ "BGR565",				 16,  2,  5,  6,  5,  0, false,  true ],
+	[ "BGRX5551",			 16,  2,  5,  5,  5,  0, false,  true ],
+	[ "BGRA4444",			 16,  2,  4,  4,  4,  4, false,  true ],
+	[ "DXT1 One Bit Alpha",	  4,  0,  0,  0,  0,  1,  true,  true ],
+	[ "BGRA5551",			 16,  2,  5,  5,  5,  1, false,  true ],
+	[ "UV88",				 16,  2,  8,  8,  0,  0, false,  true ],
+	[ "UVWQ8888",			 32,  4,  8,  8,  8,  8, false,  true ],
+	[ "RGBA16161616F",	     64,  8, 16, 16, 16, 16, false,  true ],
+	[ "RGBA16161616",	     64,  8, 16, 16, 16, 16, false,  true ],
+	[ "UVLX8888",			 32,  4,  8,  8,  8,  8, false,  true ],
+	[ "R32F",				 32,  4, 32,  0,  0,  0, false,  true ],
+	[ "RGB323232F",			 96, 12, 32, 32, 32,  0, false,  true ],
+	[ "RGBA32323232F",		128, 16, 32, 32, 32, 32, false,  true ],
+	[ "nVidia DST16",		 16,  2,  0,  0,  0,  0, false,  true ],
+	[ "nVidia DST24",		 24,  3,  0,  0,  0,  0, false,  true ],
+	[ "nVidia INTZ",		 32,  4,  0,  0,  0,  0, false,  true ],
+	[ "nVidia RAWZ",		 32,  4,  0,  0,  0,  0, false,  true ],
+	[ "ATI DST16",			 16,  2,  0,  0,  0,  0, false,  true ],
+	[ "ATI DST24",			 24,  3,  0,  0,  0,  0, false,  true ],
+	[ "nVidia NULL",		 32,  4,  0,  0,  0,  0, false,  true ],
+	[ "ATI1N",				  4,  0,  0,  0,  0,  0,  true,  true ],
+	[ "ATI2N",				  8,  0,  0,  0,  0,  0,  true,  true ],
+].entries()) {
+	VTFImageFormatInfo.push({
+		Name: value[0],
+		BitsPerPixel: value[1],
+		Channels: value[2],
+		ChannelBits: {
+			r: value[3],
+			g: value[4],
+			b: value[5],
+			a: value[6]
+		},
+		ID: index,
+	});
 }
 
-exports.VTFImageFormatTypeList = [
-	"IMAGE_FORMAT_RGBA8888",
-	"IMAGE_FORMAT_ABGR8888",
-	"IMAGE_FORMAT_RGB888",
-	"IMAGE_FORMAT_BGR888",
-	"IMAGE_FORMAT_RGB565",
-	"IMAGE_FORMAT_I8",
-	"IMAGE_FORMAT_IA88",
-	"IMAGE_FORMAT_P8",
-	"IMAGE_FORMAT_A8",
-	"IMAGE_FORMAT_RGB888_BLUESCREEN",
-	"IMAGE_FORMAT_BGR888_BLUESCREEN",
-	"IMAGE_FORMAT_ARGB8888",
-	"IMAGE_FORMAT_BGRA8888",
-	"IMAGE_FORMAT_DXT1",
-	"IMAGE_FORMAT_DXT3",
-	"IMAGE_FORMAT_DXT5",
-	"IMAGE_FORMAT_BGRX8888",
-	"IMAGE_FORMAT_BGR565",
-	"IMAGE_FORMAT_BGRX5551",
-	"IMAGE_FORMAT_BGRA4444",
-	"IMAGE_FORMAT_DXT1_ONEBITALPHA",
-	"IMAGE_FORMAT_BGRA5551",
-	"IMAGE_FORMAT_UV88",
-	"IMAGE_FORMAT_UVWQ8888",
-	"IMAGE_FORMAT_RGBA16161616F",
-	"IMAGE_FORMAT_RGBA16161616",
-	"IMAGE_FORMAT_UVLX8888",
-	"IMAGE_FORMAT_R32F",
-	"IMAGE_FORMAT_RGB323232F",
-	"IMAGE_FORMAT_RGBA32323232F",
-	"IMAGE_FORMAT_NV_DST16",
-	"IMAGE_FORMAT_NV_DST24",
-	"IMAGE_FORMAT_NV_INTZ",
-	"IMAGE_FORMAT_NV_RAWZ",
-	"IMAGE_FORMAT_ATI_DST16",
-	"IMAGE_FORMAT_ATI_DST24",
-	"IMAGE_FORMAT_NV_NULL",
-	"IMAGE_FORMAT_ATI2N",
-	"IMAGE_FORMAT_ATI1N",
-];
+VTFImageFormatInfo.push({
+	Name: "none",
+	BitsPerPixel: 0,
+	Channels: 0,
+	ChannelBits: {
+		r: 0,
+		g: 0,
+		b: 0,
+		a: 0
+	},
+	ID: 0xffffffff,
+})
 
-exports.VTFImageFormatType = Object.create(null);
-for (let key in exports.VTFImageFormatTypeList) {
-	exports.VTFImageFormatType[exports.VTFImageFormatTypeList[key]] = parseInt(key);
+const GetImageTypeData = exports.GetImageTypeData = function GetImageTypeData(x) {
+	if (typeof x === "string") {
+		x = x.toLowerCase();
+		return VTFImageFormatInfo.find(a => a.Name.toLowerCase() === x);
+	}
+	return VTFImageFormatInfo.find(a => a.ID == x);
 }
 
-exports.VTFImageFormatType.IMAGE_FORMAT_NONE = 0xFFFFFFFF;
-
-const VTFImageFormatInfo = [
-	[ "RGBA8888",			 32,  4,  8,  8,  8,  8, false,  true ],		// IMAGE_FORMAT_RGBA8888,
-	[ "ABGR8888",			 32,  4,  8,  8,  8,  8, false,  true ],		// IMAGE_FORMAT_ABGR8888, 
-	[ "RGB888",				 24,  3,  8,  8,  8,  0, false,  true ],		// IMAGE_FORMAT_RGB888,
-	[ "BGR888",				 24,  3,  8,  8,  8,  0, false,  true ],		// IMAGE_FORMAT_BGR888,
-	[ "RGB565",				 16,  2,  5,  6,  5,  0, false,  true ],		// IMAGE_FORMAT_RGB565, 
-	[ "I8",					  8,  1,  0,  0,  0,  0, false,  true ],		// IMAGE_FORMAT_I8,
-	[ "IA88",				 16,  2,  0,  0,  0,  8, false,  true ],		// IMAGE_FORMAT_IA88
-	[ "P8",					  8,  1,  0,  0,  0,  0, false, false ],		// IMAGE_FORMAT_P8
-	[ "A8",					  8,  1,  0,  0,  0,  8, false,  true ],		// IMAGE_FORMAT_A8
-	[ "RGB888 Bluescreen",	 24,  3,  8,  8,  8,  0, false,  true ],		// IMAGE_FORMAT_RGB888_BLUESCREEN
-	[ "BGR888 Bluescreen",	 24,  3,  8,  8,  8,  0, false,  true ],		// IMAGE_FORMAT_BGR888_BLUESCREEN
-	[ "ARGB8888",			 32,  4,  8,  8,  8,  8, false,  true ],		// IMAGE_FORMAT_ARGB8888
-	[ "BGRA8888",			 32,  4,  8,  8,  8,  8, false,  true ],		// IMAGE_FORMAT_BGRA8888
-	[ "DXT1",				  4,  0,  5,  6,  5,  0,  true,  true ],		// IMAGE_FORMAT_DXT1
-	[ "DXT3",				  8,  0,  0,  0,  0,  8,  true,  true ],		// IMAGE_FORMAT_DXT3
-	[ "DXT5",				  8,  0,  0,  0,  0,  8,  true,  true ],		// IMAGE_FORMAT_DXT5
-	[ "BGRX8888",			 32,  4,  8,  8,  8,  0, false,  true ],		// IMAGE_FORMAT_BGRX8888
-	[ "BGR565",				 16,  2,  5,  6,  5,  0, false,  true ],		// IMAGE_FORMAT_BGR565
-	[ "BGRX5551",			 16,  2,  5,  5,  5,  0, false,  true ],		// IMAGE_FORMAT_BGRX5551
-	[ "BGRA4444",			 16,  2,  4,  4,  4,  4, false,  true ],		// IMAGE_FORMAT_BGRA4444
-	[ "DXT1 One Bit Alpha",	  4,  0,  0,  0,  0,  1,  true,  true ],		// IMAGE_FORMAT_DXT1_ONEBITALPHA
-	[ "BGRA5551",			 16,  2,  5,  5,  5,  1, false,  true ],		// IMAGE_FORMAT_BGRA5551
-	[ "UV88",				 16,  2,  8,  8,  0,  0, false,  true ],		// IMAGE_FORMAT_UV88
-	[ "UVWQ8888",			 32,  4,  8,  8,  8,  8, false,  true ],		// IMAGE_FORMAT_UVWQ8899
-	[ "RGBA16161616F",	     64,  8, 16, 16, 16, 16, false,  true ],		// IMAGE_FORMAT_RGBA16161616F
-	[ "RGBA16161616",	     64,  8, 16, 16, 16, 16, false,  true ],		// IMAGE_FORMAT_RGBA16161616
-	[ "UVLX8888",			 32,  4,  8,  8,  8,  8, false,  true ],		// IMAGE_FORMAT_UVLX8888
-	[ "R32F",				 32,  4, 32,  0,  0,  0, false,  true ],		// IMAGE_FORMAT_R32F
-	[ "RGB323232F",			 96, 12, 32, 32, 32,  0, false,  true ],		// IMAGE_FORMAT_RGB323232F
-	[ "RGBA32323232F",		128, 16, 32, 32, 32, 32, false,  true ],		// IMAGE_FORMAT_RGBA32323232F
-	[ "nVidia DST16",		 16,  2,  0,  0,  0,  0, false,  true ],		// IMAGE_FORMAT_NV_DST16
-	[ "nVidia DST24",		 24,  3,  0,  0,  0,  0, false,  true ],		// IMAGE_FORMAT_NV_DST24
-	[ "nVidia INTZ",		 32,  4,  0,  0,  0,  0, false,  true ],		// IMAGE_FORMAT_NV_INTZ
-	[ "nVidia RAWZ",		 32,  4,  0,  0,  0,  0, false,  true ],		// IMAGE_FORMAT_NV_RAWZ
-	[ "ATI DST16",			 16,  2,  0,  0,  0,  0, false,  true ],		// IMAGE_FORMAT_ATI_DST16
-	[ "ATI DST24",			 24,  3,  0,  0,  0,  0, false,  true ],		// IMAGE_FORMAT_ATI_DST24
-	[ "nVidia NULL",		 32,  4,  0,  0,  0,  0, false,  true ],		// IMAGE_FORMAT_NV_NULL
-	[ "ATI1N",				  4,  0,  0,  0,  0,  0,  true,  true ],		// IMAGE_FORMAT_ATI1N
-	[ "ATI2N",				  8,  0,  0,  0,  0,  0,  true,  true ],		// IMAGE_FORMAT_ATI2N
-];
+const GetImageType = exports.GetImageType = function GetImageType(x) {
+	let d = GetImageTypeData(x)
+	return d ? d.Name : "none";
+}
 
 function _ComputeImageSize(uiWidth, uiHeight, uiDepth, ImageFormat) {
 	switch(ImageFormat)
 	{
-	case exports.VTFImageFormatType.IMAGE_FORMAT_DXT1:
-	case exports.VTFImageFormatType.IMAGE_FORMAT_DXT1_ONEBITALPHA:
+	case "DXT1":
+	case "DXT1_ONEBITALPHA":
 		if(uiWidth < 4 && uiWidth > 0)
 			uiWidth = 4;
 
@@ -108,8 +115,8 @@ function _ComputeImageSize(uiWidth, uiHeight, uiDepth, ImageFormat) {
 			uiHeight = 4;
 
 		return Math.floor((uiWidth + 3) / 4) * Math.floor((uiHeight + 3) / 4) * 8 * uiDepth;
-	case exports.VTFImageFormatType.IMAGE_FORMAT_DXT3:
-	case exports.VTFImageFormatType.IMAGE_FORMAT_DXT5:
+	case "DXT3":
+	case "DXT5":
 		if(uiWidth < 4 && uiWidth > 0)
 			uiWidth = 4;
 
@@ -118,7 +125,7 @@ function _ComputeImageSize(uiWidth, uiHeight, uiDepth, ImageFormat) {
 
 		return Math.floor((uiWidth + 3) / 4) * Math.floor((uiHeight + 3) / 4) * 16 * uiDepth;
 	default:
-		return uiWidth * uiHeight * uiDepth * VTFImageFormatInfo[ImageFormat][2];
+		return uiWidth * uiHeight * uiDepth * GetImageTypeData(ImageFormat).BitsPerPixel;
 	}
 }
 
@@ -216,7 +223,7 @@ class BinaryEditor {
 	}
 }
 
-exports.VTFImageData = class VTFImageData {
+const VTFImageData = exports.VTFImageData = class VTFImageData {
 	constructor(width, height, depth, format, data) {
 		this.Width = width;
 		this.Height = height;
@@ -230,14 +237,16 @@ exports.VTFImageData = class VTFImageData {
 		if (this.Depth !== 1)
 			throw new Error("Depth != 1 pls test this");
 
+		let data;
+		let from = this.Data;
 		switch (this.Format) {
-			case exports.VTFImageFormatType.IMAGE_FORMAT_DXT5:
-				return Buffer.from(dxt.decompress(this.Data, this.Width, this.Height, dxt.flags.DXT5));
-			case exports.VTFImageFormatType.IMAGE_FORMAT_DXT3:
-				return Buffer.from(dxt.decompress(this.Data, this.Width, this.Height, dxt.flags.DXT3));
+			case "DXT5":
+				return Buffer.from(dxt.decompress(from, this.Width, this.Height, dxt.flags.DXT5));
+			case "DXT3":
+				return Buffer.from(dxt.decompress(from, this.Width, this.Height, dxt.flags.DXT3));
 			
-			case exports.VTFImageFormatType.IMAGE_FORMAT_ABGR8888:
-				let data = Buffer.from(this.Data);
+			case "ABGR8888":
+				data = Buffer.from(from);
 				for (let i = 0; i < data.length; i += 4) {
 					let a = data[i];
 					let b = data[i + 1];
@@ -250,22 +259,44 @@ exports.VTFImageData = class VTFImageData {
 
 				return data;
 
+			case "BGRA8888":
+				data = Buffer.from(from);
+				for (let i = 0; i < data.length; i += 4) {
+					let b = data[i];
+					data[i] = data[i + 2];
+					data[i + 2] = b;
+				}
+				return data;
+
+			case "RGBA8888":
+				return Buffer.from(from);
+
+			case "RGB888":
+				data = Buffer.alloc(from.length / 3 * 4);
+				for (let i = 0; i < from.length; i += 3) {
+					let base = i / 3 * 4;
+					for (let x = 0; x < 3; x++)
+						data[base + x] = from[i + x]
+					data[base + 3] = 255;
+				}
+				return data;
 			default:
-				throw new Error("Unsupported format: " + exports.VTFImageFormatTypeList[this.Format]);
+				throw new Error("Unsupported format: " + this.Format);
 		}
 	}
 
-	static convert(rgba8888, width, height, format) {
+	static convert(from, width, height, format) {
+		let data;
 		switch (format) {
-			case exports.VTFImageFormatType.IMAGE_FORMAT_DXT5:
-				return Buffer.from(dxt.compress(rgba8888, width, height, dxt.flags.DXT5));
-			case exports.VTFImageFormatType.IMAGE_FORMAT_DXT3:
-				return Buffer.from(dxt.compress(rgba8888, width, height, dxt.flags.DXT3));
-			case exports.VTFImageFormatType.IMAGE_FORMAT_DXT1:
-				return Buffer.from(dxt.compress(rgba8888, width, height, dxt.flags.DXT1));
+			case "DXT5":
+				return Buffer.from(dxt.compress(from, width, height, dxt.flags.DXT5));
+			case "DXT3":
+				return Buffer.from(dxt.compress(from, width, height, dxt.flags.DXT3));
+			case "DXT1":
+				return Buffer.from(dxt.compress(from, width, height, dxt.flags.DXT1));
 			
-			case exports.VTFImageFormatType.IMAGE_FORMAT_ABGR8888:
-				let data = Buffer.from(rgba8888);
+			case "ABGR8888":
+				data = Buffer.from(from);
 				for (let i = 0; i < data.length; i += 4) {
 					let a = data[i];
 					let b = data[i + 1];
@@ -278,18 +309,53 @@ exports.VTFImageData = class VTFImageData {
 
 				return data;
 
+			case "ABGR8888":
+				data = Buffer.from(from);
+				for (let i = 0; i < data.length; i += 4) {
+					let a = data[i];
+					let b = data[i + 1];
+
+					data[i] = data[i + 3];
+					data[i + 1] = data[i + 2];
+					data[i + 2] = b;
+					data[i + 3] = a;
+				}
+
+				return data;
+
+			case "BGRA8888":
+				data = Buffer.from(from);
+				for (let i = 0; i < data.length; i += 4) {
+					let b = data[i];
+					data[i] = data[i + 2];
+					data[i + 2] = b;
+				}
+				return data;
+
+			case "RGB888":
+				data = Buffer.alloc(from.length / 4 * 3);
+				for (let i = 0; i < from.length; i += 4) {
+					let base = i / 4 * 3;
+					for (let x = 0; x < 3; x++)
+						data[base + x] = from[i + x]
+				}
+				return data;
+
+			case "RGBA8888":
+				return Buffer.from(from);
+
 			default:
-				throw new Error("Unsupported format: " + exports.VTFImageFormatTypeList[format]);
+				throw new Error("Unsupported format: " + format);
 		}
 	}
 
 	fromRGBA8888(rgba8888) {
-		this.Data = exports.VTFImageData.convert(rgba8888, this.Width, this.Height, this.Format);
+		this.Data = VTFImageData.convert(rgba8888, this.Width, this.Height, this.Format);
 		return this;
 	}
 
 	convert(format) {
-		return new exports.VTFImageData(this.Width, this.Height, this.Depth, format).fromRGBA8888(this.toRGBA8888());
+		return new VTFImageData(this.Width, this.Height, this.Depth, format).fromRGBA8888(this.toRGBA8888());
 	}
 }
 
@@ -319,9 +385,9 @@ exports.VTFFile = class VTFFile extends BinaryEditor {
 			];
 			this.Padding1 = Buffer.alloc(4); this.read(4);
 			this.BumpScale = this.readf32();
-			this.ImageFormat = this.readu32();
+			this.ImageFormat = GetImageType(this.readu32());
 			this.MipCount = this.readu8();
-			this.LowResImageFormat = this.readu32();
+			this.LowResImageFormat = GetImageType(this.readu32());
 			this.LowResImageWidth = this.readu8();
 			this.LowResImageHeight = this.readu8();
 
@@ -352,16 +418,16 @@ exports.VTFFile = class VTFFile extends BinaryEditor {
 				}
 
 				for (let resource of tmp_resources) {
-					if (resource.Type == exports.VTFResourceTypes.IMAGE) {
+					if (resource.Type == VTFResourceTypes.IMAGE) {
 						imageOffset = resource.Data;
 					}
-					else if (resource.Type == exports.VTFResourceTypes.LOW_RES_IMAGE) {
+					else if (resource.Type == VTFResourceTypes.LOW_RES_IMAGE) {
 						thumbnailOffset = resource.Data;
 					}
 					else if ((resource.Type & 0x02000000) == 0) {
 						let last_size = this.size;
 						this.size = obj.Data;
-						this.Resources.push(new exports.VTFResource(resource.Type, this.read(this.readu32())));
+						this.Resources.push(new VTFResource(resource.Type, this.read(this.readu32())));
 						this.size = last_size;
 					}
 				}
@@ -375,16 +441,16 @@ exports.VTFFile = class VTFFile extends BinaryEditor {
 
 			let last_size = this.size;
 
-			if (this.LowResImageFormat !== exports.VTFImageFormatType.IMAGE_FORMAT_NONE) {
+			if (this.LowResImageFormat !== "none") {
 				if (thumbnailOffset)
 					this.size = thumbnailOffset;
-				this.Resources.push(new exports.VTFResource(exports.VTFResourceTypes.LOW_RES_IMAGE, this.read(ComputeImageSize(this.LowResImageWidth, this.LowResImageHeight, 1, 1, this.LowResImageFormat))));
+				this.Resources.push(new VTFResource(VTFResourceTypes.LOW_RES_IMAGE, this.read(ComputeImageSize(this.LowResImageWidth, this.LowResImageHeight, 1, 1, this.LowResImageFormat))));
 			}
 
-			if (this.ImageFormat !== exports.VTFImageFormatType.IMAGE_FORMAT_NONE) {
+			if (this.ImageFormat !== "none") {
 				if (imageOffset)
 					this.size = imageOffset;
-				this.Resources.push(new exports.VTFResource(exports.VTFResourceTypes.IMAGE, this.read(ComputeImageSize(this.Width, this.Height, this.Depth, this.MipCount, this.ImageFormat))));
+				this.Resources.push(new VTFResource(VTFResourceTypes.IMAGE, this.read(ComputeImageSize(this.Width, this.Height, this.Depth, this.MipCount, this.ImageFormat))));
 			}
 
 			this.size = last_size;
@@ -417,7 +483,7 @@ exports.VTFFile = class VTFFile extends BinaryEditor {
 	}
 
 	getImageResource() {
-		return this.Resources.find(x => x.Type == exports.VTFResourceTypes.IMAGE);
+		return this.Resources.find(x => x.Type == VTFResourceTypes.IMAGE);
 	}
 
 	getImages() {
@@ -434,7 +500,7 @@ exports.VTFFile = class VTFFile extends BinaryEditor {
 			let end = cur;
 			cur -= _ComputeImageSize(uiWidth, uiHeight, uiDepth, this.ImageFormat);
 
-			imgs.unshift(new exports.VTFImageData(uiWidth, uiHeight, uiDepth, this.ImageFormat, img.Data.slice(cur, end)));
+			imgs.unshift(new VTFImageData(uiWidth, uiHeight, uiDepth, this.ImageFormat, img.Data.slice(cur, end)));
 
 			uiWidth >>= 1;
 			uiHeight >>= 1;
@@ -483,7 +549,7 @@ exports.VTFFile = class VTFFile extends BinaryEditor {
 
 		this.write(this.Padding1);
 		this.writef32(this.BumpScale);
-		this.writeu32(this.ImageFormat);
+		this.writeu32(GetImageTypeData(this.ImageFormat).ID);
 		this.writeu8(this.MipCount);
 		this.writeu32(this.LowResImageFormat);
 		this.writeu8(this.LowResImageWidth);
@@ -502,7 +568,7 @@ exports.VTFFile = class VTFFile extends BinaryEditor {
 
 
 		for (let resource of this.Resources) {
-			if (resource.Type == exports.VTFResourceTypes.IMAGE || resource.Type == exports.VTFResourceTypes.LOW_RES_IMAGE) {
+			if (resource.Type == VTFResourceTypes.IMAGE || resource.Type == VTFResourceTypes.LOW_RES_IMAGE) {
 				arr.push(resource.Data);
 			}
 			else if ((resource.Type & 0x02000000) == 0) {
@@ -514,20 +580,5 @@ exports.VTFFile = class VTFFile extends BinaryEditor {
 		}
 
 		return Buffer.concat(arr);
-	}
-};
-
-exports.VTFResource = class VTFResource {
-	constructor(type, data) {
-		this.Type = type;
-		this.Data = data;
-	}
-
-	toBuffer() {
-		let buf = Buffer.alloc(8);
-		buf.writeUInt32LE(this.Type, 0);
-		buf.writeUInt32LE(this.Offset, 4);
-
-		return buf;
 	}
 };
