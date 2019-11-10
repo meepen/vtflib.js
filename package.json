@@ -1,6 +1,6 @@
 {
   "name": "vtflib",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Work with VTF files in javascript",
   "author": "Meepen <meepdarknessmeep@gmail.com>",
   "keywords": [

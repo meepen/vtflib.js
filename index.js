@@ -125,7 +125,7 @@ function _ComputeImageSize(uiWidth, uiHeight, uiDepth, ImageFormat) {
 
 		return Math.floor((uiWidth + 3) / 4) * Math.floor((uiHeight + 3) / 4) * 16 * uiDepth;
 	default:
-		return uiWidth * uiHeight * uiDepth * GetImageTypeData(ImageFormat).BitsPerPixel;
+		return Math.ceil((uiWidth * uiHeight * uiDepth * GetImageTypeData(ImageFormat).BitsPerPixel) / 8);
 	}
 }
 
