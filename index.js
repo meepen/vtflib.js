@@ -244,6 +244,8 @@ const VTFImageData = exports.VTFImageData = class VTFImageData {
 				return Buffer.from(dxt.decompress(from, this.Width, this.Height, dxt.flags.DXT5));
 			case "DXT3":
 				return Buffer.from(dxt.decompress(from, this.Width, this.Height, dxt.flags.DXT3));
+			case "DXT1":
+				return Buffer.from(dxt.decompress(from, this.Width, this.Height, dxt.flags.DXT1));
 			
 			case "ABGR8888":
 				data = Buffer.from(from);
