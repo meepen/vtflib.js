@@ -1,6 +1,6 @@
 {
   "name": "vtflib",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Work with VTF files in javascript",
   "author": "Meepen <meepdarknessmeep@gmail.com>",
   "keywords": [
@@ -11,9 +11,6 @@
     "dxt-js": "0.0.3"
   },
   "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/meepen/vtflib.js.git"
