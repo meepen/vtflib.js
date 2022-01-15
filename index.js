@@ -233,6 +233,24 @@ const VTFImageData = exports.VTFImageData = class VTFImageData {
 		this.Format = format;
 	}
 
+	toRGB888() {
+		if (this.Depth !== 1)
+			throw new Error("Depth != 1 pls test this");
+
+		let from = this.Data;
+
+		switch (this.Format) {
+			case "DXT1":
+				const rgbaArray = dxt.decompress(from, this.Width, this.Height, dxt.flags.DXT1);
+				const rgbArray = rgbaArray.filter((_, i) => {
+					return (i + 1) % 4;		// Removes every fourth byte(alpha channel)
+				});
+				return Buffer.from(rgbArray);
+			default:
+				throw new Error("Unsupported format: " + this.Format);
+		}
+	}
+
 	toRGBA8888() {
 		if (this.Depth !== 1)
 			throw new Error("Depth != 1 pls test this");
@@ -244,7 +262,8 @@ const VTFImageData = exports.VTFImageData = class VTFImageData {
 				return Buffer.from(dxt.decompress(from, this.Width, this.Height, dxt.flags.DXT5));
 			case "DXT3":
 				return Buffer.from(dxt.decompress(from, this.Width, this.Height, dxt.flags.DXT3));
-			
+			case "DXT1":
+				return  Buffer.from(dxt.decompress(from, this.Width, this.Height, dxt.flags.DXT1));
 			case "ABGR8888":
 				data = Buffer.from(from);
 				for (let i = 0; i < data.length; i += 4) {
@@ -265,6 +284,16 @@ const VTFImageData = exports.VTFImageData = class VTFImageData {
 					let b = data[i];
 					data[i] = data[i + 2];
 					data[i + 2] = b;
+				}
+				return data;
+
+			case "BGR888":
+				data = Buffer.alloc(from.length / 3 * 4);
+				for (let i = 0; i < from.length; i += 3) {
+					let base = i / 3 * 4;
+					for (let x = 0; x < 3; x++)
+						data[base + x] = from[i + (2 - x)]		// Reverse BGR order to RGB
+					data[base + 3] = 255;
 				}
 				return data;
 
