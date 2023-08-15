@@ -1,4 +1,4 @@
-const dxt = require("dxt-js");
+const dxt = require("silent-dxt-js");
 
 const VTFResourceTypes = exports.VTFResourceTypes = {
 	LOW_RES_IMAGE: 1,
