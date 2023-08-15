@@ -8,7 +8,7 @@
   ],
   "main": "index.js",
   "dependencies": {
-    "dxt-js": "0.0.3"
+    "silent-dxt-js": "0.0.3"
   },
   "devDependencies": {},
   "repository": {
